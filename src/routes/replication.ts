@@ -48,12 +48,18 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
 
     const delegate = prisma[modelName] as any;
 
-    let tenantIsolationQuery: any = { tenantId: user.tenantId };
+    let tenantIsolationQuery: any = {};
     
     if (modelName === 'stockBatch') {
       tenantIsolationQuery = { branchStock: { branch: { tenantId: user.tenantId } } };
     } else if (modelName === 'branchStock') {
       tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
+    } else if (modelName === 'stockRequest') {
+      tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
+    } else if (modelName === 'stockTransfer') {
+      tenantIsolationQuery = { fromBranch: { tenantId: user.tenantId } };
+    } else {
+      tenantIsolationQuery = { tenantId: user.tenantId };
     }
 
     const documents = await delegate.findMany({
