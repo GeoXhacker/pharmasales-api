@@ -48,9 +48,17 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
 
     const delegate = prisma[modelName] as any;
 
+    let tenantIsolationQuery: any = { tenantId: user.tenantId };
+    
+    if (modelName === 'stockBatch') {
+      tenantIsolationQuery = { branchStock: { branch: { tenantId: user.tenantId } } };
+    } else if (modelName === 'branchStock') {
+      tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
+    }
+
     const documents = await delegate.findMany({
       where: {
-        tenantId: user.tenantId, // Ensure tenant isolation
+        ...tenantIsolationQuery,
         OR: [
           { updatedAt: { gt: checkpointUpdatedAt } },
           { updatedAt: checkpointUpdatedAt, id: { gt: checkpointId } }
@@ -64,12 +72,22 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
     });
 
     const formattedDocuments = documents.map((doc: any) => {
-      // Map Dates to Unix timestamps or ISO strings for RxDB
       const formatted = { ...doc };
+      formatted.createdAt = new Date(formatted.createdAt).getTime();
       formatted.updatedAt = new Date(formatted.updatedAt).getTime();
-      if (formatted.createdAt) formatted.createdAt = new Date(formatted.createdAt).getTime();
-      if (formatted.deletedAt) formatted.deletedAt = new Date(formatted.deletedAt).getTime();
-      // Handle nulls and dates in specific fields depending on collection...
+      if (formatted.deletedAt) {
+        formatted.deletedAt = new Date(formatted.deletedAt).getTime();
+      }
+      
+      // Convert Decimal to number
+      for (const key of Object.keys(formatted)) {
+        if (formatted[key] !== null && typeof formatted[key] === 'object' && typeof formatted[key].toNumber === 'function') {
+           formatted[key] = formatted[key].toNumber();
+        } else if (typeof formatted[key] === 'string' && ['buyingPrice', 'sellingPrice', 'totalAmount', 'discount', 'finalAmount', 'amountPaid', 'balance'].includes(key)) {
+           formatted[key] = parseFloat(formatted[key]);
+        }
+      }
+
       return formatted;
     });
 

@@ -97,7 +97,7 @@ model Tenant {
   logo           String?
   isActive       Boolean        @default(true)
   createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  updatedAt      DateTime       @updatedAt @default(now())
   branches       Branch[]
   users          User[]
   suppliers      Supplier[]
@@ -120,7 +120,7 @@ model Branch {
   isActive           Boolean         @default(true)
   tenantId           String
   createdAt          DateTime        @default(now())
-  updatedAt          DateTime        @updatedAt
+  updatedAt          DateTime        @updatedAt @default(now())
   tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   users              User[]
   sales              Sale[]
@@ -149,7 +149,7 @@ model User {
   branchId         String?
   role             UserRole          @default(CASHIER)
   createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  updatedAt        DateTime          @updatedAt @default(now())
   tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   branch           Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
   accounts         Account[]
@@ -186,7 +186,7 @@ model Supplier {
   isActive      Boolean   @default(true)
   tenantId      String
   createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  updatedAt     DateTime  @updatedAt @default(now())
   tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   products      Product[]
   deletedAt     DateTime?
@@ -202,7 +202,7 @@ model Category {
   isActive    Boolean   @default(true)
   tenantId    String
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime  @updatedAt @default(now())
   tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   products    Product[]
   deletedAt   DateTime?
@@ -227,7 +227,7 @@ model Product {
   supplierId           String?
   categoryId           String?
   createdAt            DateTime                 @default(now())
-  updatedAt            DateTime                 @updatedAt
+  updatedAt            DateTime                 @updatedAt @default(now())
   tenant               Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   supplier             Supplier?                @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   category             Category?                @relation(fields: [categoryId], references: [id], onDelete: SetNull)
@@ -249,7 +249,7 @@ model BranchStock {
   minStockLevel Int          @default(10)
   sellingPrice  Decimal      @db.Decimal(10, 2)
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  updatedAt     DateTime     @updatedAt @default(now())
   product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
   branch        Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
   batches       StockBatch[]
@@ -269,7 +269,7 @@ model StockBatch {
   quantity       Int
   buyingPrice    Decimal           @db.Decimal(10, 2)
   createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  updatedAt      DateTime          @updatedAt @default(now())
   branchStock    BranchStock       @relation(fields: [branchStockId], references: [id], onDelete: Cascade)
   saleItems      SaleItem[]
   adjustments    StockAdjustment[]
@@ -313,7 +313,7 @@ model StockAdjustment {
   stockBatch   StockBatch            @relation(fields: [stockBatchId], references: [id], onDelete: Cascade)
   user         User                  @relation(fields: [userId], references: [id])
   approvedBy   User?                 @relation("ApprovedBy", fields: [approvedById], references: [id])
-  updatedAt    DateTime              @updatedAt
+  updatedAt    DateTime              @updatedAt @default(now())
   deletedAt    DateTime?
 
   @@index([stockBatchId])
@@ -337,7 +337,7 @@ model StockTransfer {
   requestedById String
   approvedById  String?
   createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
+  updatedAt     DateTime            @updatedAt @default(now())
   stockBatch    StockBatch          @relation(fields: [stockBatchId], references: [id])
   fromBranch    Branch              @relation("FromBranch", fields: [fromBranchId], references: [id])
   toBranch      Branch              @relation("ToBranch", fields: [toBranchId], references: [id])
@@ -367,7 +367,7 @@ model StockRequest {
   requestedById String
   approvedById String?
   createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  updatedAt    DateTime           @updatedAt @default(now())
 
   product     Product @relation(fields: [productId], references: [id])
   branch      Branch  @relation(fields: [branchId], references: [id])
@@ -400,7 +400,7 @@ model Sale {
   tenantId           String
   userId             String
   createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  updatedAt          DateTime      @updatedAt @default(now())
   branch             Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
   user               User          @relation(fields: [userId], references: [id])
   customer           Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
@@ -446,7 +446,7 @@ model SaleItem {
   sale         Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
   stockBatch   StockBatch @relation(fields: [stockBatchId], references: [id])
   createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  updatedAt    DateTime   @updatedAt @default(now())
   deletedAt    DateTime?
 
   @@index([saleId])
@@ -470,7 +470,7 @@ model Prescription {
   tenantId           String
   dispensedBy        String?
   createdAt          DateTime                 @default(now())
-  updatedAt          DateTime                 @updatedAt
+  updatedAt          DateTime                 @updatedAt @default(now())
   deletedAt          DateTime?
   medications        PrescriptionMedication[]
 
@@ -491,7 +491,7 @@ model PrescriptionMedication {
   prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
   product        Product      @relation(fields: [productId], references: [id])
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  updatedAt      DateTime     @updatedAt @default(now())
   deletedAt      DateTime?
 
   @@index([prescriptionId])
@@ -508,7 +508,7 @@ model Customer {
   balance   Decimal   @default(0) @db.Decimal(10, 2)
   tenantId  String
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  updatedAt DateTime  @updatedAt @default(now())
   tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   sales     Sale[]
   payments  Payment[]
@@ -534,7 +534,7 @@ model Payment {
   user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
   branch        Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
   tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  updatedAt     DateTime      @updatedAt
+  updatedAt     DateTime      @updatedAt @default(now())
   deletedAt     DateTime?
 
   @@index([saleId])
@@ -555,7 +555,7 @@ model AuditLog {
   tenantId   String
   branchId   String?
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt  DateTime @updatedAt @default(now())
   deletedAt  DateTime?
 
   @@index([tenantId])
@@ -570,7 +570,7 @@ model GlobalSetting {
   key       String   @unique
   value     String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @default(now())
 }
 
 model ShiftSummary {
@@ -590,7 +590,7 @@ model ShiftSummary {
   endedAt   DateTime @default(now())
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt @default(now())
   deletedAt DateTime?
 
   @@index([userId])
