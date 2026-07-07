@@ -1,0 +1,598 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum DrugFormulation {
+  // === Oral Solids ===
+  TABLET
+  CAPSULE
+  LOZENGE
+  POWDER
+  GRANULES
+  // === Oral Liquids ===
+  SYRUP
+  SUSPENSION
+  SOLUTION
+  ELIXIR
+  EMULSION
+  // === Topical (Applied to Body Surfaces) ===
+  CREAM
+  OINTMENT
+  GEL
+  LOTION
+  PATCH
+  PASTE
+  // === Parenteral (Injected) ===
+  INJECTION
+  INFUSION
+  // === Inhalation ===
+  INHALER
+  NEBULIZER_SOLUTION
+  // === Other Formulations ===
+  DROPS
+  SUPPOSITORY
+  SPRAY
+  OIL
+  PESSARIES
+}
+
+enum DosageUnit {
+  PCS
+  MG
+  MCG
+  G
+  ML
+  IU
+  PERCENT
+}
+
+// NextAuth.js Required Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Multi-Tenant Core Models
+model Tenant {
+  id             String         @id @default(cuid())
+  name           String
+  slug           String         @unique
+  email          String
+  phone          String?
+  address        String?
+  logo           String?
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  branches       Branch[]
+  users          User[]
+  suppliers      Supplier[]
+  categories     Category[]
+  customers      Customer[]
+  payments       Payment[]
+  shiftSummaries ShiftSummary[]
+  products       Product[]
+
+  @@index([slug])
+}
+
+model Branch {
+  id                 String          @id @default(cuid())
+  name               String
+  code               String
+  address            String
+  phone              String?
+  email              String?
+  isActive           Boolean         @default(true)
+  tenantId           String
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  tenant             Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  users              User[]
+  sales              Sale[]
+  payments           Payment[]
+  shiftSummaries     ShiftSummary[]
+  branchStocks       BranchStock[]
+  stockTransfersFrom StockTransfer[] @relation("FromBranch")
+  stockTransfersTo   StockTransfer[] @relation("ToBranch")
+  stockRequests      StockRequest[]
+
+  @@unique([tenantId, code])
+  @@index([tenantId])
+}
+
+// Enhanced User Model for Multi-Tenant
+model User {
+  id               String            @id @default(cuid())
+  name             String?
+  email            String            @unique
+  emailVerified    DateTime?
+  image            String?
+  phone            String?
+  isActive         Boolean           @default(true)
+  passwordHash     String?
+  tenantId         String
+  branchId         String?
+  role             UserRole          @default(CASHIER)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  tenant           Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  branch           Branch?           @relation(fields: [branchId], references: [id], onDelete: SetNull)
+  accounts         Account[]
+  sessions         Session[]
+  sales            Sale[]
+  stockAdjustments    StockAdjustment[]
+  approvedAdjustments StockAdjustment[] @relation("ApprovedBy")
+  payments         Payment[]
+  shiftSummaries   ShiftSummary[]
+  stockTransfers   StockTransfer[]
+  stockRequests    StockRequest[]
+
+  @@index([tenantId])
+  @@index([branchId])
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  BRANCH_MANAGER
+  PHARMACIST
+  CASHIER
+  INVENTORY_CLERK
+}
+
+// Supplier Management
+model Supplier {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?
+  phone         String?
+  address       String?
+  contactPerson String?
+  isActive      Boolean   @default(true)
+  tenantId      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products      Product[]
+  deletedAt     DateTime?
+
+  @@index([tenantId])
+}
+
+// Category Management
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  isActive    Boolean   @default(true)
+  tenantId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  products    Product[]
+  deletedAt   DateTime?
+
+  @@unique([tenantId, name])
+  @@index([tenantId])
+}
+
+// Central Product Catalog
+model Product {
+  id                   String                   @id @default(cuid())
+  name                 String
+  genericName          String?
+  brand                String?
+  dosage               String
+  dosageUnit           DosageUnit
+  formulation          DrugFormulation
+  barcode              String?                  @unique
+  description          String?
+  requiresPrescription Boolean                  @default(false)
+  tenantId             String
+  supplierId           String?
+  categoryId           String?
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  tenant               Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  supplier             Supplier?                @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  category             Category?                @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  branchStocks         BranchStock[]
+  prescribedMedications PrescriptionMedication[]
+  stockRequests        StockRequest[]
+  deletedAt            DateTime?
+
+  @@unique([tenantId, name, brand, dosage])
+  @@index([tenantId])
+}
+
+// Branch-Level Stock Allocation
+model BranchStock {
+  id            String       @id @default(cuid())
+  productId     String
+  branchId      String
+  quantity      Int          @default(0) // This will be a calculated field from StockBatch
+  minStockLevel Int          @default(10)
+  sellingPrice  Decimal      @db.Decimal(10, 2)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  product       Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  branch        Branch       @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  batches       StockBatch[]
+  deletedAt     DateTime?
+
+  @@unique([branchId, productId])
+  @@index([branchId])
+  @@index([productId])
+}
+
+// Batch / Lot Tracking
+model StockBatch {
+  id             String            @id @default(cuid())
+  branchStockId  String
+  batchNumber    String
+  expiryDate     DateTime
+  quantity       Int
+  buyingPrice    Decimal           @db.Decimal(10, 2)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  branchStock    BranchStock       @relation(fields: [branchStockId], references: [id], onDelete: Cascade)
+  saleItems      SaleItem[]
+  adjustments    StockAdjustment[]
+  stockTransfers StockTransfer[]
+  deletedAt      DateTime?
+
+  @@unique([branchStockId, batchNumber])
+  @@index([branchStockId])
+  @@index([expiryDate])
+}
+
+enum StockAdjustmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum StockAdjustmentReason {
+  PURCHASE
+  SALE
+  EXPIRED
+  DAMAGED
+  LOST
+  COUNT
+  RETURN
+  TRANSFER
+}
+
+// Stock Adjustment History
+model StockAdjustment {
+  id           String                @id @default(cuid())
+  stockBatchId String
+  quantity     Int // Positive for additions, negative for deductions
+  reason       StockAdjustmentReason
+  status       StockAdjustmentStatus @default(APPROVED)
+  notes        String?
+  userId       String
+  approvedById String?
+  approvedAt   DateTime?
+  createdAt    DateTime              @default(now())
+  stockBatch   StockBatch            @relation(fields: [stockBatchId], references: [id], onDelete: Cascade)
+  user         User                  @relation(fields: [userId], references: [id])
+  approvedBy   User?                 @relation("ApprovedBy", fields: [approvedById], references: [id])
+  updatedAt    DateTime              @updatedAt
+  deletedAt    DateTime?
+
+  @@index([stockBatchId])
+  @@index([createdAt])
+}
+
+enum StockTransferStatus {
+  PENDING
+  COMPLETED
+  REJECTED
+}
+
+// Stock Transfer
+model StockTransfer {
+  id            String              @id @default(cuid())
+  stockBatchId  String
+  fromBranchId  String
+  toBranchId    String
+  quantity      Int
+  status        StockTransferStatus @default(PENDING)
+  requestedById String
+  approvedById  String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  stockBatch    StockBatch          @relation(fields: [stockBatchId], references: [id])
+  fromBranch    Branch              @relation("FromBranch", fields: [fromBranchId], references: [id])
+  toBranch      Branch              @relation("ToBranch", fields: [toBranchId], references: [id])
+  requestedBy   User                @relation(fields: [requestedById], references: [id])
+  deletedAt     DateTime?
+
+  @@index([fromBranchId])
+  @@index([toBranchId])
+}
+
+enum StockRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+// Stock Request
+model StockRequest {
+  id           String             @id @default(cuid())
+  productId    String
+  branchId     String
+  quantity     Int
+  buyingPrice  Decimal            @db.Decimal(10, 2)
+  expiryDate   DateTime
+  batchNumber  String
+  status       StockRequestStatus @default(PENDING)
+  requestedById String
+  approvedById String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  product     Product @relation(fields: [productId], references: [id])
+  branch      Branch  @relation(fields: [branchId], references: [id])
+  requestedBy User    @relation(fields: [requestedById], references: [id])
+
+  sellingPrice  Decimal? @db.Decimal(10, 2)
+  minStockLevel Int?
+  deletedAt     DateTime?
+
+  @@index([branchId])
+  @@index([productId])
+}
+
+// Enhanced Sales Management
+model Sale {
+  id                 String        @id @default(cuid())
+  saleNumber         String
+  totalAmount        Decimal       @db.Decimal(10, 2)
+  discount           Decimal       @default(0) @db.Decimal(10, 2)
+  tax                Decimal       @default(0) @db.Decimal(10, 2)
+  finalAmount        Decimal       @db.Decimal(10, 2)
+  amountPaid         Decimal       @default(0) @db.Decimal(10, 2)
+  amountDue          Decimal       @db.Decimal(10, 2)
+  paymentMethod      PaymentMethod @default(CASH)
+  paymentStatus      PaymentStatus @default(COMPLETED)
+  customerId         String?
+  prescriptionNumber String?
+  doctorName         String?
+  branchId           String
+  tenantId           String
+  userId             String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  branch             Branch        @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  user               User          @relation(fields: [userId], references: [id])
+  customer           Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items              SaleItem[]
+  payments           Payment[]
+  deletedAt          DateTime?
+
+  @@unique([branchId, saleNumber])
+  @@index([branchId])
+  @@index([tenantId])
+  @@index([createdAt])
+  @@index([paymentStatus])
+  @@index([customerId])
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  MOBILE_MONEY
+  BANK_TRANSFER
+  CREDIT
+  CASH_AND_CREDIT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_PAID
+  CREDIT
+}
+
+// Sale Items
+model SaleItem {
+  id           String     @id @default(cuid())
+  saleId       String
+  stockBatchId String
+  quantity     Int
+  unitPrice    Decimal    @db.Decimal(10, 2)
+  discount     Decimal    @default(0) @db.Decimal(10, 2)
+  total        Decimal    @db.Decimal(10, 2)
+  sale         Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  stockBatch   StockBatch @relation(fields: [stockBatchId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  @@index([saleId])
+  @@index([stockBatchId])
+}
+
+// Prescription Management (Pharmacy Specific)
+model Prescription {
+  id                 String                   @id @default(cuid())
+  prescriptionNumber String
+  doctorName         String
+  doctorLicense      String?
+  patientName        String
+  patientPhone       String?
+  patientAge         Int?
+  diagnosis          String?
+  instructions       String?
+  isDispensed        Boolean                  @default(false)
+  dispensedAt        DateTime?
+  branchId           String
+  tenantId           String
+  dispensedBy        String?
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  deletedAt          DateTime?
+  medications        PrescriptionMedication[]
+
+  @@unique([branchId, prescriptionNumber])
+  @@index([branchId])
+  @@index([tenantId])
+}
+
+model PrescriptionMedication {
+  id             String       @id @default(cuid())
+  prescriptionId String
+  productId      String
+  quantity       Int
+  dosage         String
+  frequency      String
+  duration       String?
+  instructions   String?
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+
+  @@index([prescriptionId])
+  @@index([productId])
+}
+
+// Customer Management
+model Customer {
+  id        String    @id @default(cuid())
+  name      String
+  phone     String?   @unique
+  email     String?   @unique
+  address   String?
+  balance   Decimal   @default(0) @db.Decimal(10, 2)
+  tenantId  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  tenant    Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sales     Sale[]
+  payments  Payment[]
+  deletedAt DateTime?
+
+  @@index([tenantId])
+  @@index([name])
+}
+
+// Payment Tracking
+model Payment {
+  id            String        @id @default(cuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  paymentMethod PaymentMethod
+  saleId        String?
+  customerId    String?
+  userId        String
+  branchId      String
+  tenantId      String
+  createdAt     DateTime      @default(now())
+  sale          Sale?         @relation(fields: [saleId], references: [id], onDelete: SetNull)
+  customer      Customer?     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  branch        Branch        @relation(fields: [branchId], references: [id], onDelete: Restrict)
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updatedAt     DateTime      @updatedAt
+  deletedAt     DateTime?
+
+  @@index([saleId])
+  @@index([customerId])
+  @@index([branchId])
+  @@index([tenantId])
+}
+
+// Audit Trail
+model AuditLog {
+  id         String   @id @default(cuid())
+  action     String
+  entityType String
+  entityId   String
+  oldValues  Json?
+  newValues  Json?
+  userId     String?
+  tenantId   String
+  branchId   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt  DateTime?
+
+  @@index([tenantId])
+  @@index([branchId])
+  @@index([createdAt])
+  @@index([entityType, entityId])
+}
+
+// Global System Settings
+model GlobalSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ShiftSummary {
+  id       String @id @default(cuid())
+  userId   String
+  user     User   @relation(fields: [userId], references: [id])
+  branchId String
+  branch   Branch @relation(fields: [branchId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  totalSales Decimal @db.Decimal(10, 2)
+  cashSales  Decimal @db.Decimal(10, 2)
+  cardSales  Decimal @db.Decimal(10, 2)
+
+  startedAt DateTime
+  endedAt   DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  @@index([userId])
+  @@index([branchId])
+}
