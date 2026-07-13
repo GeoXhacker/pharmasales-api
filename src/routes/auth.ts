@@ -37,8 +37,8 @@ router.post('/login', async (req, res) => {
       email: user.email,
     };
 
-    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '15m' });
-    const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
+    const refreshToken = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: '30d' });
 
     res.json({
       accessToken,
@@ -77,7 +77,7 @@ router.post('/refresh', async (req, res) => {
         email: user.email,
       };
 
-      const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '15m' });
+      const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
       res.json({ accessToken });
     });
