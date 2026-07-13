@@ -23,6 +23,7 @@ const COLLECTION_MODEL_MAP: Record<string, keyof typeof prisma> = {
   payments: 'payment',
   auditLog: 'auditLog',
   shiftSummary: 'shiftSummary',
+  branches: 'branch',
 };
 
 // Types for Replication Handlers
