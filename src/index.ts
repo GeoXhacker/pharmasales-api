@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import authRoutes from './routes/auth';
 import salesRoutes from './routes/sales';
 import replicationRoutes from './routes/replication';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/sales', salesRoutes);
 app.use('/replication', replicationRoutes);
+app.use('/admin', adminRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

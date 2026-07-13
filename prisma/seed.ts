@@ -9,12 +9,15 @@ async function main() {
   // Clean up existing data
   await prisma.stockAdjustment.deleteMany({});
   await prisma.payment.deleteMany({});
+  await prisma.saleItem.deleteMany({});
   await prisma.sale.deleteMany({});
   await prisma.stockBatch.deleteMany({});
   await prisma.branchStock.deleteMany({});
-  await prisma.product.deleteMany({ where: { name: { in: ['Test Product for Stock', 'Test Product for Sales'] } } });
-  await prisma.user.deleteMany({ where: { email: 'admin@bristolpharmacy.com' } });
-  await prisma.tenant.deleteMany({ where: { slug: 'bristol-pharmacy' } });
+  await prisma.product.deleteMany({});
+  await prisma.category.deleteMany({});
+  await prisma.user.deleteMany({});
+  await prisma.branch.deleteMany({});
+  await prisma.tenant.deleteMany({});
 
   // Create Tenant
   const tenant = await prisma.tenant.create({
@@ -38,39 +41,100 @@ async function main() {
   // Create Admin User
   await prisma.user.create({
     data: {
-      email: 'admin@bristolpharmacy.com',
+      email: 'admin@pharmasales.com',
       name: 'Admin User',
-      passwordHash: '$2a$10$1.Vw2e.1r8b7K1yXn4zM9uF.n/L5n5Qj3X.X0zJ2.0zJ2.0zJ2.0z', // password123
+      passwordHash: '$2b$10$9/snceOIPYfTJbfLBwhb3OZl1Lk7p5VnCZnO5c5GmFY.QQi8pWNeu', // password123
       role: 'ADMIN',
       tenantId: tenant.id,
       branchId: branch.id,
     },
   });
 
-  // Create Test Products
-  await prisma.product.create({
+  // Create Categories
+  const category1 = await prisma.category.create({
     data: {
-        name: 'Test Product for Stock',
-        brand: 'Test Brand',
+      name: 'Painkillers',
+      tenantId: tenant.id,
+    }
+  });
+
+  const category2 = await prisma.category.create({
+    data: {
+      name: 'Antibiotics',
+      tenantId: tenant.id,
+    }
+  });
+
+  // Create Products
+  const prod1 = await prisma.product.create({
+    data: {
+        name: 'Paracetamol 500mg',
+        brand: 'Panadol',
         dosage: '500mg',
         dosageUnit: DosageUnit.MG,
         formulation: DrugFormulation.TABLET,
+        categoryId: category1.id,
         tenantId: tenant.id,
+        requiresPrescription: false
     }
   });
 
-  await prisma.product.create({
+  const prod2 = await prisma.product.create({
     data: {
-        name: 'Test Product for Sales',
-        brand: 'Test Brand',
+        name: 'Amoxicillin 250mg',
+        brand: 'Amoxil',
         dosage: '250mg',
         dosageUnit: DosageUnit.MG,
         formulation: DrugFormulation.CAPSULE,
+        categoryId: category2.id,
         tenantId: tenant.id,
+        requiresPrescription: true
     }
   });
 
-  console.log('Seeding finished.');
+  // Create Branch Stocks
+  const bs1 = await prisma.branchStock.create({
+    data: {
+        productId: prod1.id,
+        branchId: branch.id,
+        quantity: 100,
+        minStockLevel: 20,
+        sellingPrice: 1.50
+    }
+  });
+
+  const bs2 = await prisma.branchStock.create({
+    data: {
+        productId: prod2.id,
+        branchId: branch.id,
+        quantity: 50,
+        minStockLevel: 10,
+        sellingPrice: 5.00
+    }
+  });
+
+  // Create Stock Batches
+  await prisma.stockBatch.create({
+    data: {
+        batchNumber: 'BATCH-001',
+        branchStockId: bs1.id,
+        quantity: 100,
+        buyingPrice: 0.50,
+        expiryDate: new Date('2027-12-31')
+    }
+  });
+
+  await prisma.stockBatch.create({
+    data: {
+        batchNumber: 'BATCH-002',
+        branchStockId: bs2.id,
+        quantity: 50,
+        buyingPrice: 2.00,
+        expiryDate: new Date('2028-06-30')
+    }
+  });
+
+  console.log('Seeding finished successfully.');
 }
 
 main()

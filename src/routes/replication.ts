@@ -17,6 +17,7 @@ const COLLECTION_MODEL_MAP: Record<string, keyof typeof prisma> = {
   suppliers: 'supplier',
   customers: 'customer',
   sales: 'sale',
+  saleItems: 'saleItem',
   prescriptions: 'prescription',
   stockRequests: 'stockRequest',
   payments: 'payment',
@@ -58,6 +59,8 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
       tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
     } else if (modelName === 'stockTransfer') {
       tenantIsolationQuery = { fromBranch: { tenantId: user.tenantId } };
+    } else if (modelName === 'saleItem') {
+      tenantIsolationQuery = { sale: { tenantId: user.tenantId } };
     } else {
       tenantIsolationQuery = { tenantId: user.tenantId };
     }
@@ -79,11 +82,10 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
 
     const formattedDocuments = documents.map((doc: any) => {
       const formatted = { ...doc };
-      formatted.createdAt = new Date(formatted.createdAt).getTime();
-      formatted.updatedAt = new Date(formatted.updatedAt).getTime();
-      if (formatted.deletedAt) {
-        formatted.deletedAt = new Date(formatted.deletedAt).getTime();
-      }
+      formatted.createdAt = formatted.createdAt ? new Date(formatted.createdAt).getTime() : undefined;
+      formatted.updatedAt = formatted.updatedAt ? new Date(formatted.updatedAt).getTime() : undefined;
+      formatted.deletedAt = formatted.deletedAt ? new Date(formatted.deletedAt).getTime() : undefined;
+      formatted.expiryDate = formatted.expiryDate ? new Date(formatted.expiryDate).getTime() : undefined;
       
       // Convert Decimal to number
       for (const key of Object.keys(formatted)) {
