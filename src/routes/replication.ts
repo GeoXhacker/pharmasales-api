@@ -171,6 +171,12 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
         if (dataToSave.createdAt) dataToSave.createdAt = new Date(dataToSave.createdAt);
         if (dataToSave.deletedAt) dataToSave.deletedAt = new Date(dataToSave.deletedAt);
 
+        // Remove RxDB-specific meta fields that don't exist in Prisma schema
+        delete dataToSave._deleted;
+        delete dataToSave._meta;
+        delete dataToSave._rev;
+        delete dataToSave.isNewOffline;
+
         if (existingDoc) {
             await delegate.update({
                 where: { id: newDocState.id },
