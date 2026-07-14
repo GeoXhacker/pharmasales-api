@@ -137,9 +137,11 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
       return res.status(404).json({ error: `Collection ${collection} not found for replication` });
     }
 
-    const { pushRow } = req.body;
-    if (!pushRow) {
-      return res.status(400).json({ error: 'Missing pushRow' });
+    const isArray = Array.isArray(req.body);
+    const { pushRow } = isArray ? { pushRow: null } : req.body;
+    
+    if (!isArray && !pushRow) {
+      return res.status(400).json({ error: 'Missing pushRow or array payload' });
     }
 
     // In RxDB replication, push payload is an array of pushRows or a single pushRow array
