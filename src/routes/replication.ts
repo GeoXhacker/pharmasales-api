@@ -28,6 +28,7 @@ const COLLECTION_MODEL_MAP: Record<string, keyof typeof prisma> = {
   auditLog: 'auditLog',
   shiftSummary: 'shiftSummary',
   branches: 'branch',
+  users: 'user',
 };
 
 // Types for Replication Handlers
@@ -101,6 +102,13 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
         }
       }
 
+      // Sanitize User payload for security and schema compliance
+      if (collection === 'users') {
+        delete formatted.passwordHash;
+        delete formatted.emailVerified;
+        delete formatted.image;
+      }
+
       return formatted;
     });
 
@@ -128,7 +136,7 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
     const collection = req.params.collection as string;
     
     // Explicitly reject push to non-bidirectional collections or handled via atomic routes
-    if (['products', 'branchStocks', 'stockBatches', 'categories', 'suppliers', 'auditLog', 'sales'].includes(collection)) {
+    if (['products', 'branchStocks', 'stockBatches', 'categories', 'suppliers', 'auditLog', 'sales', 'users'].includes(collection)) {
       return res.status(403).json({ error: `Direct push to ${collection} is not allowed` });
     }
 
