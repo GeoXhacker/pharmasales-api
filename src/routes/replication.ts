@@ -7,6 +7,10 @@ const router = Router();
 
 router.use(authenticateJWT);
 
+// Handle Push Replication (Clients pushing local changes up)
+// For now, only allow pushing sales, saleItems, customers, and payments to avoid conflicts on central catalog.
+const ALLOWED_PUSH_COLLECTIONS = ['sales', 'saleItems', 'customers', 'payments'];
+
 // Collection mapping to Prisma models
 // Ensures we only replicate allowed models and have the correct prisma delegate.
 const COLLECTION_MODEL_MAP: Record<string, keyof typeof prisma> = {
@@ -124,7 +128,7 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
     const collection = req.params.collection as string;
     
     // Explicitly reject push to non-bidirectional collections or handled via atomic routes
-    if (['products', 'branchStocks', 'stockBatches', 'categories', 'suppliers', 'payments', 'auditLog', 'sales'].includes(collection)) {
+    if (['products', 'branchStocks', 'stockBatches', 'categories', 'suppliers', 'auditLog', 'sales'].includes(collection)) {
       return res.status(403).json({ error: `Direct push to ${collection} is not allowed` });
     }
 
