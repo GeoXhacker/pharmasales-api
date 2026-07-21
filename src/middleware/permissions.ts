@@ -119,6 +119,9 @@ const permissions: Record<UserRole, Partial<Record<Resource, Partial<Record<Acti
     [RESOURCES.FINANCIAL_REPORTS]: {
         [ACTIONS.VIEW]: isSameTenant,
     },
+    [RESOURCES.REPORTS]: {
+        [ACTIONS.VIEW]: isSameTenant,
+    },
     [RESOURCES.CUSTOMER]: {
         [ACTIONS.VIEW]: isSameTenant,
         [ACTIONS.CREATE]: isSameTenant,
@@ -164,6 +167,12 @@ const permissions: Record<UserRole, Partial<Record<Resource, Partial<Record<Acti
     [RESOURCES.PAYMENT]: {
         [ACTIONS.VIEW]: isSameBranch,
         [ACTIONS.MAKE_PAYMENT]: isSameBranch,
+    },
+    [RESOURCES.REPORTS]: {
+        [ACTIONS.VIEW]: isSameBranch,
+    },
+    [RESOURCES.FINANCIAL_REPORTS]: {
+        [ACTIONS.VIEW]: isSameBranch,
     }
   },
   [UserRole.PHARMACIST]: {

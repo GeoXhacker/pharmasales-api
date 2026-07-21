@@ -3,11 +3,63 @@ import { prisma } from '../prisma';
 import { authenticateJWT, AuthenticatedRequest } from '../middleware/auth';
 import { deductStockForSale, StockDeductionStrategy } from '../services/stock-service';
 import { canUserPerform } from '../middleware/permissions';
-import { PaymentMethod, PaymentStatus } from '@prisma/client';
+import { PaymentMethod, PaymentStatus, UserRole } from '@prisma/client';
 
 const router = Router();
 
 router.use(authenticateJWT);
+
+// GET /sales
+router.get('/', async (req: AuthenticatedRequest, res) => {
+    try {
+        const user = req.user;
+        if (!user) return res.sendStatus(401);
+
+        if (!canUserPerform('VIEW', 'SALE', user)) {
+            return res.status(403).json({ error: 'Insufficient permissions' });
+        }
+
+        const filter: any = {
+            tenantId: user.tenantId,
+        };
+
+        if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
+            if (user.branchId) {
+                filter.branchId = user.branchId;
+            }
+        }
+
+        // Fetch sales with basic relations
+        const sales = await prisma.sale.findMany({
+            where: filter,
+            include: {
+                items: {
+                    include: {
+                        stockBatch: {
+                            include: {
+                                branchStock: {
+                                    include: {
+                                        product: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                customer: true,
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+            take: 1000, // Limit to recent 1000 sales for reports to avoid massive payloads
+        });
+
+        res.json(sales);
+    } catch (error: any) {
+        console.error('Error fetching sales:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
 
 router.post('/confirm', async (req: AuthenticatedRequest, res) => {
   try {
@@ -153,7 +205,7 @@ router.post('/confirm', async (req: AuthenticatedRequest, res) => {
       }
 
       return sale;
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     // TODO: Send SSE notification to clients that stock changed
 
@@ -183,10 +235,13 @@ router.post('/offline-sync', async (req: AuthenticatedRequest, res) => {
     // Process the offline sale exactly as it was created in RxDB
     const result = await prisma.$transaction(async (tx) => {
       // 1. Create Sale (Using RxDB's ID to prevent duplicates if sync is retried)
-      const newSale = await tx.sale.upsert({
-        where: { id: sale.id },
-        update: {}, // Already exists, do nothing
-        create: {
+      const existingSale = await tx.sale.findUnique({ where: { id: sale.id } });
+      if (existingSale) {
+        return existingSale;
+      }
+
+      const newSale = await tx.sale.create({
+        data: {
           id: sale.id,
           saleNumber: sale.saleNumber,
           totalAmount: sale.totalAmount,
@@ -220,12 +275,7 @@ router.post('/offline-sync', async (req: AuthenticatedRequest, res) => {
         }
       });
 
-      // If it was just created (upsert hit create)
-      if (newSale.createdAt.getTime() === new Date(sale.createdAt).getTime() || true) {
-        // We shouldn't duplicate deductions if it already existed. A robust implementation
-        // checks if upsert actually created. For now, assuming upsert create.
-
-        // 2. Create Payment if amountPaid > 0
+      // 2. Create Payment if amountPaid > 0
         if (sale.amountPaid > 0) {
           await tx.payment.create({
             data: {
@@ -275,10 +325,9 @@ router.post('/offline-sync', async (req: AuthenticatedRequest, res) => {
             });
           }
         }
-      }
 
       return newSale;
-    });
+    }, { maxWait: 10000, timeout: 20000 });
 
     res.json(result);
   } catch (error: any) {

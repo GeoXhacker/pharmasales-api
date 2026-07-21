@@ -6,6 +6,9 @@ import authRoutes from './routes/auth';
 import salesRoutes from './routes/sales';
 import replicationRoutes from './routes/replication';
 import adminRoutes from './routes/admin';
+import stockRoutes from './routes/stock';
+import reportsRoutes from './routes/reports';
+import profitsRoutes from './routes/profits';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -19,6 +22,9 @@ app.use('/auth', authRoutes);
 app.use('/sales', salesRoutes);
 app.use('/replication', replicationRoutes);
 app.use('/admin', adminRoutes);
+app.use('/stock', stockRoutes);
+app.use('/reports', reportsRoutes);
+app.use('/profits', profitsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

@@ -26,7 +26,7 @@ const COLLECTION_MODEL_MAP: Record<string, keyof typeof prisma> = {
   stockRequests: 'stockRequest',
   payments: 'payment',
   auditLog: 'auditLog',
-  shiftSummary: 'shiftSummary',
+  shiftSummaries: 'shiftSummary',
   branches: 'branch',
   users: 'user',
 };
@@ -92,6 +92,8 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
       formatted.updatedAt = formatted.updatedAt ? new Date(formatted.updatedAt).getTime() : undefined;
       formatted.deletedAt = formatted.deletedAt ? new Date(formatted.deletedAt).getTime() : undefined;
       formatted.expiryDate = formatted.expiryDate ? new Date(formatted.expiryDate).getTime() : undefined;
+      formatted.startedAt = formatted.startedAt ? new Date(formatted.startedAt).getTime() : undefined;
+      formatted.endedAt = formatted.endedAt ? new Date(formatted.endedAt).getTime() : undefined;
       
       // Convert Decimal to number
       for (const key of Object.keys(formatted)) {
@@ -124,7 +126,8 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
 
   } catch (error: any) {
     console.error('Pull replication error:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    require('fs').appendFileSync('/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/replication-error.log', new Date().toISOString() + ' ' + req.params.collection + ': ' + (error.stack || error.message) + '\n');
+    res.status(500).json({ error: 'Internal server error', details: error.message });
   }
 });
 
@@ -178,6 +181,9 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
         dataToSave.updatedAt = new Date(dataToSave.updatedAt);
         if (dataToSave.createdAt) dataToSave.createdAt = new Date(dataToSave.createdAt);
         if (dataToSave.deletedAt) dataToSave.deletedAt = new Date(dataToSave.deletedAt);
+        if (dataToSave.startedAt) dataToSave.startedAt = new Date(dataToSave.startedAt);
+        if (dataToSave.endedAt) dataToSave.endedAt = new Date(dataToSave.endedAt);
+        if (dataToSave.expiryDate) dataToSave.expiryDate = new Date(dataToSave.expiryDate);
 
         // Remove RxDB-specific meta fields that don't exist in Prisma schema
         delete dataToSave._deleted;
