@@ -342,5 +342,73 @@ router.patch('/products/:id', async (req: AuthenticatedRequest, res: Response) =
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+// GET /admin/settings
+router.get('/settings', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || !user.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: user.tenantId },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        email: true,
+        phone: true,
+        address: true,
+        logo: true,
+      }
+    });
+
+    if (!tenant) {
+      return res.status(404).json({ error: 'Tenant not found' });
+    }
+
+    res.json(tenant);
+  } catch (error: any) {
+    console.error('Error fetching settings:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /admin/settings
+router.patch('/settings', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || !user.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { name, email, phone, address } = req.body;
+
+    const dataToUpdate: any = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (email !== undefined) dataToUpdate.email = email;
+    if (phone !== undefined) dataToUpdate.phone = phone;
+    if (address !== undefined) dataToUpdate.address = address;
+
+    const updatedTenant = await prisma.tenant.update({
+      where: { id: user.tenantId },
+      data: dataToUpdate,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        email: true,
+        phone: true,
+        address: true,
+        logo: true,
+      }
+    });
+
+    res.json(updatedTenant);
+  } catch (error: any) {
+    console.error('Error updating settings:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 export default router;
