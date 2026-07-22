@@ -282,13 +282,11 @@ router.post('/transfers', async (req: AuthenticatedRequest, res) => {
             // Create the transfer record
             const transfer = await tx.stockTransfer.create({
                 data: {
-                    tenantId: user.tenantId,
                     fromBranchId,
                     toBranchId,
                     stockBatchId,
                     quantity: quantityInt,
-                    notes,
-                    initiatedById: user.id,
+                    requestedById: user.id,
                     status: 'PENDING',
                 }
             });
