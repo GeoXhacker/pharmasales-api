@@ -84,13 +84,17 @@ router.patch('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
     }
 
     const { id } = req.params;
-    const { name, role, isActive, branchId } = req.body;
+    const { name, role, isActive, branchId, password } = req.body;
 
     const dataToUpdate: any = {};
     if (name !== undefined) dataToUpdate.name = name;
     if (role !== undefined) dataToUpdate.role = role;
     if (isActive !== undefined) dataToUpdate.isActive = isActive;
     if (branchId !== undefined) dataToUpdate.branchId = branchId;
+
+    if (password) {
+      dataToUpdate.passwordHash = await bcrypt.hash(password, 10);
+    }
 
     const updatedUser = await prisma.user.update({
         where: { id, tenantId: user.tenantId },
