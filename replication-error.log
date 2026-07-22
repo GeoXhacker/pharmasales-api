@@ -1,0 +1,132 @@
+2026-07-22T06:32:18.118Z products: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:18.123Z branchStocks: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:18.126Z stockBatches: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:18.129Z customers: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:18.132Z sales: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:18.135Z saleItems: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Timed out fetching a new connection from the connection pool. More info: http://pris.ly/d/connection-pool (Current connection pool timeout: 10, connection limit: 9)
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:27.887Z payments: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Can't reach database server at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`.
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:27.890Z users: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Can't reach database server at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`.
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23
+2026-07-22T06:32:27.894Z shiftSummaries: PrismaClientKnownRequestError: 
+Invalid `delegate.findMany()` invocation in
+/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:38
+
+  71   tenantIsolationQuery = { tenantId: user.tenantId };
+  72 }
+  73 
+→ 74 const documents = await delegate.findMany(
+Can't reach database server at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`
+
+Please make sure your database server is running at `ep-late-band-a2jkg2wf-pooler.eu-central-1.aws.neon.tech:5432`.
+    at ei.handleRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:228:13)
+    at ei.handleAndLogRequestError (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:174:12)
+    at ei.request (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/RequestHandler.ts:143:12)
+    at a (/home/geoxhacker/koodeyo/pharmapos/pharmasales-api/node_modules/.pnpm/@prisma+client@6.19.3_prisma@6.19.3_typescript@6.0.3/node_modules/@prisma/client/src/runtime/getPrismaClient.ts:833:24)
+    at /home/geoxhacker/koodeyo/pharmapos/pharmasales-api/src/routes/replication.ts:74:23

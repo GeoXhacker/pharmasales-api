@@ -75,4 +75,39 @@ router.post('/users', async (req: AuthenticatedRequest, res: Response) => {
   }
 });
 
+// PATCH /admin/users/:id
+router.patch('/users/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || !user.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { id } = req.params;
+    const { name, role, isActive, branchId } = req.body;
+
+    const dataToUpdate: any = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (role !== undefined) dataToUpdate.role = role;
+    if (isActive !== undefined) dataToUpdate.isActive = isActive;
+    if (branchId !== undefined) dataToUpdate.branchId = branchId;
+
+    const updatedUser = await prisma.user.update({
+        where: { id, tenantId: user.tenantId },
+        data: dataToUpdate,
+    });
+
+    res.json({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      isActive: updatedUser.isActive,
+    });
+  } catch (error: any) {
+    console.error('Failed to update user:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 export default router;
