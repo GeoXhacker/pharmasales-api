@@ -279,6 +279,70 @@ router.post('/transfers', async (req: AuthenticatedRequest, res) => {
                 throw new Error('Insufficient quantity in batch');
             }
 
+            // Deduct from source batch and branchStock
+            await tx.stockBatch.update({
+                where: { id: stockBatchId },
+                data: { quantity: { decrement: quantityInt } }
+            });
+            await tx.branchStock.update({
+                where: { id: batch.branchStockId },
+                data: { quantity: { decrement: quantityInt } }
+            });
+
+            // Find or create destination BranchStock
+            let destBranchStock = await tx.branchStock.findUnique({
+                where: {
+                    branchId_productId: {
+                        branchId: toBranchId,
+                        productId: batch.branchStock.productId
+                    }
+                }
+            });
+
+            if (!destBranchStock) {
+                destBranchStock = await tx.branchStock.create({
+                    data: {
+                        branchId: toBranchId,
+                        productId: batch.branchStock.productId,
+                        sellingPrice: batch.branchStock.sellingPrice,
+                        minStockLevel: batch.branchStock.minStockLevel,
+                        quantity: quantityInt
+                    }
+                });
+            } else {
+                await tx.branchStock.update({
+                    where: { id: destBranchStock.id },
+                    data: { quantity: { increment: quantityInt } }
+                });
+            }
+
+            // Find or create destination StockBatch
+            const destBatch = await tx.stockBatch.findUnique({
+                where: {
+                    branchStockId_batchNumber: {
+                        branchStockId: destBranchStock.id,
+                        batchNumber: batch.batchNumber
+                    }
+                }
+            });
+
+            if (destBatch) {
+                await tx.stockBatch.update({
+                    where: { id: destBatch.id },
+                    data: { quantity: { increment: quantityInt } }
+                });
+            } else {
+                await tx.stockBatch.create({
+                    data: {
+                        branchStockId: destBranchStock.id,
+                        batchNumber: batch.batchNumber,
+                        expiryDate: batch.expiryDate,
+                        buyingPrice: batch.buyingPrice,
+                        quantity: quantityInt
+                    }
+                });
+            }
+
             // Create the transfer record
             const transfer = await tx.stockTransfer.create({
                 data: {
@@ -287,15 +351,9 @@ router.post('/transfers', async (req: AuthenticatedRequest, res) => {
                     stockBatchId,
                     quantity: quantityInt,
                     requestedById: user.id,
-                    status: 'PENDING',
+                    approvedById: user.id,
+                    status: 'COMPLETED',
                 }
-            });
-
-            // Note: We don't deduct quantity immediately until it's received, or we can deduct it now
-            // Let's deduct it now so it's not double-sold
-            await tx.stockBatch.update({
-                where: { id: stockBatchId },
-                data: { quantity: { decrement: quantityInt } }
             });
 
             return transfer;
