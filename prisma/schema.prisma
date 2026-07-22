@@ -7,6 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StockDeductionStrategy {
+  FIFO // First In First Out
+  LIFO // Last In First Out
+  FEFO // First Expiring First Out
+}
+
 enum DrugFormulation {
   // === Oral Solids ===
   TABLET
@@ -95,8 +101,12 @@ model Tenant {
   phone          String?
   address        String?
   logo           String?
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now())
+  isActive               Boolean                @default(true)
+  currencySymbol         String?                @default("UGX")
+  currencyCode           String?                @default("UGX")
+  taxRate                Decimal?               @default(0) @db.Decimal(5, 2)
+  stockDeductionStrategy StockDeductionStrategy @default(FEFO)
+  createdAt              DateTime               @default(now())
   updatedAt      DateTime       @updatedAt @default(now())
   branches       Branch[]
   users          User[]

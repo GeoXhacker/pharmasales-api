@@ -360,6 +360,10 @@ router.get('/settings', async (req: AuthenticatedRequest, res: Response) => {
         phone: true,
         address: true,
         logo: true,
+        currencySymbol: true,
+        currencyCode: true,
+        taxRate: true,
+        stockDeductionStrategy: true,
       }
     });
 
@@ -382,13 +386,17 @@ router.patch('/settings', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, currencySymbol, currencyCode, taxRate, stockDeductionStrategy } = req.body;
 
     const dataToUpdate: any = {};
     if (name !== undefined) dataToUpdate.name = name;
     if (email !== undefined) dataToUpdate.email = email;
     if (phone !== undefined) dataToUpdate.phone = phone;
     if (address !== undefined) dataToUpdate.address = address;
+    if (currencySymbol !== undefined) dataToUpdate.currencySymbol = currencySymbol;
+    if (currencyCode !== undefined) dataToUpdate.currencyCode = currencyCode;
+    if (taxRate !== undefined) dataToUpdate.taxRate = taxRate;
+    if (stockDeductionStrategy !== undefined) dataToUpdate.stockDeductionStrategy = stockDeductionStrategy;
 
     const updatedTenant = await prisma.tenant.update({
       where: { id: user.tenantId },
@@ -401,6 +409,10 @@ router.patch('/settings', async (req: AuthenticatedRequest, res: Response) => {
         phone: true,
         address: true,
         logo: true,
+        currencySymbol: true,
+        currencyCode: true,
+        taxRate: true,
+        stockDeductionStrategy: true,
       }
     });
 
