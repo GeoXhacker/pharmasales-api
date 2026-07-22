@@ -55,25 +55,41 @@ router.get('/:collection/pull', async (req: AuthenticatedRequest, res: Response)
 
     const delegate = prisma[modelName] as any;
 
-    let tenantIsolationQuery: any = {};
-    
-    if (modelName === 'stockBatch') {
-      tenantIsolationQuery = { branchStock: { branch: { tenantId: user.tenantId } } };
-    } else if (modelName === 'branchStock') {
-      tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
-    } else if (modelName === 'stockRequest') {
-      tenantIsolationQuery = { branch: { tenantId: user.tenantId } };
-    } else if (modelName === 'stockTransfer') {
-      tenantIsolationQuery = { fromBranch: { tenantId: user.tenantId } };
-    } else if (modelName === 'saleItem') {
-      tenantIsolationQuery = { sale: { tenantId: user.tenantId } };
+    let isolationQuery: any = {};
+    const isAdmin = user.role === 'ADMIN' || user.role === 'SUPER_ADMIN';
+    const bId = user.branchId;
+
+    if (isAdmin) {
+      if (modelName === 'stockBatch') {
+        isolationQuery = { branchStock: { branch: { tenantId: user.tenantId } } };
+      } else if (modelName === 'branchStock' || modelName === 'stockRequest') {
+        isolationQuery = { branch: { tenantId: user.tenantId } };
+      } else if (modelName === 'stockTransfer') {
+        isolationQuery = { fromBranch: { tenantId: user.tenantId } };
+      } else if (modelName === 'saleItem') {
+        isolationQuery = { sale: { tenantId: user.tenantId } };
+      } else {
+        isolationQuery = { tenantId: user.tenantId };
+      }
     } else {
-      tenantIsolationQuery = { tenantId: user.tenantId };
+      // Non-admin: Strict branch isolation for branch-specific entities
+      if (modelName === 'stockBatch') {
+        isolationQuery = { branchStock: { branchId: bId, branch: { tenantId: user.tenantId } } };
+      } else if (modelName === 'branchStock' || modelName === 'stockRequest') {
+        isolationQuery = { branchId: bId, branch: { tenantId: user.tenantId } };
+      } else if (modelName === 'saleItem') {
+        isolationQuery = { sale: { branchId: bId, tenantId: user.tenantId } };
+      } else if (['sale', 'payment', 'shiftSummary', 'stockTransfer'].includes(modelName as string)) {
+        isolationQuery = { branchId: bId, tenantId: user.tenantId };
+      } else {
+        // Reference entities are still tenant-wide
+        isolationQuery = { tenantId: user.tenantId };
+      }
     }
 
     const documents = await delegate.findMany({
       where: {
-        ...tenantIsolationQuery,
+        ...isolationQuery,
         OR: [
           { updatedAt: { gt: checkpointUpdatedAt } },
           { updatedAt: checkpointUpdatedAt, id: { gt: checkpointId } }
@@ -166,6 +182,13 @@ router.post('/:collection/push', async (req: AuthenticatedRequest, res: Response
         // Ensure tenant isolation
         if (newDocState.tenantId !== user.tenantId) {
             continue;
+        }
+        
+        // Ensure branch isolation for non-admins
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            if (newDocState.branchId && newDocState.branchId !== user.branchId) {
+                continue;
+            }
         }
 
         const existingDoc = await delegate.findUnique({ where: { id: newDocState.id } });

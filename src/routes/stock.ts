@@ -237,4 +237,77 @@ router.patch('/adjustments/:id/approve', async (req: AuthenticatedRequest, res) 
     }
 });
 
+// POST /stock/transfers
+router.post('/transfers', async (req: AuthenticatedRequest, res) => {
+    try {
+        const user = req.user;
+        if (!user) return res.sendStatus(401);
+
+        const { stockBatchId, toBranchId, quantity, notes } = req.body;
+        const fromBranchId = user.branchId;
+
+        if (!fromBranchId) {
+            return res.status(400).json({ error: 'You must be assigned to a branch to initiate transfers.' });
+        }
+        if (!stockBatchId || !toBranchId || !quantity) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (fromBranchId === toBranchId) {
+            return res.status(400).json({ error: 'Cannot transfer to the same branch.' });
+        }
+
+        const quantityInt = parseInt(quantity, 10);
+        if (isNaN(quantityInt) || quantityInt <= 0) {
+            return res.status(400).json({ error: 'Invalid quantity.' });
+        }
+
+        const result = await prisma.$transaction(async (tx) => {
+            // Verify batch exists and has enough quantity in the source branch
+            const batch = await tx.stockBatch.findUnique({
+                where: { id: stockBatchId },
+                include: { branchStock: true }
+            });
+
+            if (!batch) {
+                throw new Error('Batch not found');
+            }
+            if (batch.branchStock.branchId !== fromBranchId) {
+                throw new Error('Batch does not belong to your branch');
+            }
+            if (batch.quantity < quantityInt) {
+                throw new Error('Insufficient quantity in batch');
+            }
+
+            // Create the transfer record
+            const transfer = await tx.stockTransfer.create({
+                data: {
+                    tenantId: user.tenantId,
+                    fromBranchId,
+                    toBranchId,
+                    stockBatchId,
+                    quantity: quantityInt,
+                    notes,
+                    initiatedById: user.id,
+                    status: 'PENDING',
+                }
+            });
+
+            // Note: We don't deduct quantity immediately until it's received, or we can deduct it now
+            // Let's deduct it now so it's not double-sold
+            await tx.stockBatch.update({
+                where: { id: stockBatchId },
+                data: { quantity: { decrement: quantityInt } }
+            });
+
+            return transfer;
+        });
+
+        res.status(200).json(result);
+    } catch (error: any) {
+        console.error('Error creating stock transfer:', error);
+        res.status(500).json({ error: error.message || 'Internal Server Error' });
+    }
+});
+
 export default router;
