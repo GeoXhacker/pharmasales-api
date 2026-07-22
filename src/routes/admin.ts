@@ -258,5 +258,89 @@ router.patch('/categories/:id', async (req: AuthenticatedRequest, res: Response)
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+// POST /admin/products
+router.post('/products', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || !user.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, description, requiresPrescription, supplierId, categoryId } = req.body;
+    
+    if (!name || !dosage || !dosageUnit || !formulation) {
+      return res.status(400).json({ error: 'Name, dosage, dosage unit, and formulation are required' });
+    }
+
+    const newProduct = await prisma.product.create({
+      data: {
+        name,
+        genericName,
+        brand,
+        dosage,
+        dosageUnit,
+        formulation,
+        barcode,
+        description,
+        requiresPrescription: requiresPrescription || false,
+        supplierId,
+        categoryId,
+        tenantId: user.tenantId
+      }
+    });
+
+    res.status(201).json(newProduct);
+  } catch (error: any) {
+    console.error('Error creating product:', error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Product with this name/brand/dosage or barcode already exists' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// PATCH /admin/products/:id
+router.patch('/products/:id', async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || !user.tenantId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const id = req.params.id as string;
+    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, description, requiresPrescription, supplierId, categoryId } = req.body;
+
+    const existing = await prisma.product.findUnique({ where: { id } });
+    if (!existing || existing.tenantId !== user.tenantId) {
+        return res.status(404).json({ error: 'Product not found' });
+    }
+
+    const dataToUpdate: any = {};
+    if (name !== undefined) dataToUpdate.name = name;
+    if (genericName !== undefined) dataToUpdate.genericName = genericName;
+    if (brand !== undefined) dataToUpdate.brand = brand;
+    if (dosage !== undefined) dataToUpdate.dosage = dosage;
+    if (dosageUnit !== undefined) dataToUpdate.dosageUnit = dosageUnit;
+    if (formulation !== undefined) dataToUpdate.formulation = formulation;
+    if (barcode !== undefined) dataToUpdate.barcode = barcode;
+    if (description !== undefined) dataToUpdate.description = description;
+    if (requiresPrescription !== undefined) dataToUpdate.requiresPrescription = requiresPrescription;
+    if (supplierId !== undefined) dataToUpdate.supplierId = supplierId;
+    if (categoryId !== undefined) dataToUpdate.categoryId = categoryId;
+
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: dataToUpdate
+    });
+
+    res.json(updatedProduct);
+  } catch (error: any) {
+    console.error('Error updating product:', error);
+    if (error.code === 'P2002') {
+      return res.status(409).json({ error: 'Product with this name/brand/dosage or barcode already exists' });
+    }
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 export default router;
