@@ -231,6 +231,8 @@ model Product {
   dosageUnit           DosageUnit
   formulation          DrugFormulation
   barcode              String?                  @unique
+  secondaryBarcodes    String[]                 @default([])
+  gtin                 String?
   description          String?
   requiresPrescription Boolean                  @default(false)
   tenantId             String
@@ -453,6 +455,7 @@ model SaleItem {
   unitPrice    Decimal    @db.Decimal(10, 2)
   discount     Decimal    @default(0) @db.Decimal(10, 2)
   total        Decimal    @db.Decimal(10, 2)
+  serialNumber String?
   sale         Sale       @relation(fields: [saleId], references: [id], onDelete: Cascade)
   stockBatch   StockBatch @relation(fields: [stockBatchId], references: [id])
   createdAt    DateTime   @default(now())

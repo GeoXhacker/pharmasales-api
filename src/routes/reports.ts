@@ -74,6 +74,8 @@ router.get('/inventory-value', async (req: AuthenticatedRequest, res) => {
             if (user.branchId) {
                 branchStockFilter.branchId = user.branchId;
             }
+        } else if (req.query.branchId) {
+            branchStockFilter.branchId = req.query.branchId as string;
         }
 
         const batches = await prisma.stockBatch.findMany({

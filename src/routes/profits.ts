@@ -36,12 +36,20 @@ router.get('/overview', async (req: AuthenticatedRequest, res) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        const { startDate, endDate } = req.query as { startDate?: string, endDate?: string };
+        const { startDate, endDate, branchId } = req.query as { startDate?: string, endDate?: string, branchId?: string };
+
+        const filter: any = { tenantId: user.tenantId };
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            if (user.branchId) filter.branchId = user.branchId;
+        } else if (branchId) {
+            filter.branchId = branchId;
+        }
+
         const { from, to } = parseDateRange(startDate, endDate);
 
         const sales = await prisma.sale.findMany({
             where: {
-                tenantId: user.tenantId,
+                ...filter,
                 createdAt: {
                     gte: from,
                     lte: to,
@@ -119,7 +127,15 @@ router.get('/costs', async (req: AuthenticatedRequest, res) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        const { startDate, endDate } = req.query as { startDate?: string, endDate?: string };
+        const { startDate, endDate, branchId } = req.query as { startDate?: string, endDate?: string, branchId?: string };
+
+        const filter: any = { tenantId: user.tenantId };
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            if (user.branchId) filter.branchId = user.branchId;
+        } else if (branchId) {
+            filter.branchId = branchId;
+        }
+
         const { from, to } = parseDateRange(startDate, endDate);
 
         const [expiredStockLoss, stockAdjustmentImpact] = await Promise.all([
@@ -147,7 +163,15 @@ router.get('/customers', async (req: AuthenticatedRequest, res) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        const { startDate, endDate } = req.query as { startDate?: string, endDate?: string };
+        const { startDate, endDate, branchId } = req.query as { startDate?: string, endDate?: string, branchId?: string };
+
+        const filter: any = { tenantId: user.tenantId };
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            if (user.branchId) filter.branchId = user.branchId;
+        } else if (branchId) {
+            filter.branchId = branchId;
+        }
+
         const { from, to } = parseDateRange(startDate, endDate);
 
         const customerSegmentData = await calculateProfitByCustomerSegment(user.tenantId, { from, to });
@@ -169,7 +193,15 @@ router.get('/branches', async (req: AuthenticatedRequest, res) => {
             return res.status(403).json({ error: 'Insufficient permissions' });
         }
 
-        const { startDate, endDate } = req.query as { startDate?: string, endDate?: string };
+        const { startDate, endDate, branchId } = req.query as { startDate?: string, endDate?: string, branchId?: string };
+
+        const filter: any = { tenantId: user.tenantId };
+        if (user.role !== 'ADMIN' && user.role !== 'SUPER_ADMIN') {
+            if (user.branchId) filter.branchId = user.branchId;
+        } else if (branchId) {
+            filter.branchId = branchId;
+        }
+
         const { from, to } = parseDateRange(startDate, endDate);
 
         const branchProfitData = await calculateProfitByBranch(user.tenantId, { from, to });

@@ -7,6 +7,9 @@ type SaleItemData = {
   productId: string;
   quantity: number;
   sellingPrice: number;
+  batchNumber?: string;
+  serialNumber?: string;
+  discount?: number;
 };
 
 type DeductionResult = {
@@ -61,6 +64,15 @@ export async function deductStockForSale(
         break;
     }
 
+    // If GS1 Data Matrix provided a specific batchNumber (AI 10), prioritize that exact lot!
+    if (item.batchNumber) {
+      batchesToDeductFrom.sort((a, b) => {
+        const aMatch = a.batchNumber === item.batchNumber ? 1 : 0;
+        const bMatch = b.batchNumber === item.batchNumber ? 1 : 0;
+        return bMatch - aMatch; // exact batch match comes first
+      });
+    }
+
     let remainingQuantityToDeduct = item.quantity;
     for (const batch of batchesToDeductFrom) {
       if (remainingQuantityToDeduct <= 0) break;
@@ -71,7 +83,9 @@ export async function deductStockForSale(
         stockBatchId: batch.id,
         quantity: quantityToDeductFromBatch,
         unitPrice: item.sellingPrice,
-        total: item.sellingPrice * quantityToDeductFromBatch,
+        discount: item.discount || 0,
+        total: (item.sellingPrice - (item.discount || 0)) * quantityToDeductFromBatch,
+        serialNumber: item.serialNumber || null,
       });
 
       result.adjustments.push({

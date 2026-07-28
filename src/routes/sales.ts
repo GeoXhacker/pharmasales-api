@@ -27,6 +27,8 @@ router.get('/', async (req: AuthenticatedRequest, res) => {
             if (user.branchId) {
                 filter.branchId = user.branchId;
             }
+        } else if (req.query.branchId) {
+            filter.branchId = req.query.branchId as string;
         }
 
         // Fetch sales with basic relations

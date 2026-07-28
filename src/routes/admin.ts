@@ -266,7 +266,7 @@ router.post('/products', async (req: AuthenticatedRequest, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     
-    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, description, requiresPrescription, supplierId, categoryId } = req.body;
+    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, secondaryBarcodes, gtin, description, requiresPrescription, supplierId, categoryId } = req.body;
     
     if (!name || !dosage || !dosageUnit || !formulation) {
       return res.status(400).json({ error: 'Name, dosage, dosage unit, and formulation are required' });
@@ -281,6 +281,8 @@ router.post('/products', async (req: AuthenticatedRequest, res: Response) => {
         dosageUnit,
         formulation,
         barcode,
+        secondaryBarcodes: Array.isArray(secondaryBarcodes) ? secondaryBarcodes : [],
+        gtin: gtin || null,
         description,
         requiresPrescription: requiresPrescription || false,
         supplierId,
@@ -308,7 +310,7 @@ router.patch('/products/:id', async (req: AuthenticatedRequest, res: Response) =
     }
 
     const id = req.params.id as string;
-    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, description, requiresPrescription, supplierId, categoryId } = req.body;
+    const { name, genericName, brand, dosage, dosageUnit, formulation, barcode, secondaryBarcodes, gtin, description, requiresPrescription, supplierId, categoryId } = req.body;
 
     const existing = await prisma.product.findUnique({ where: { id } });
     if (!existing || existing.tenantId !== user.tenantId) {
@@ -323,6 +325,8 @@ router.patch('/products/:id', async (req: AuthenticatedRequest, res: Response) =
     if (dosageUnit !== undefined) dataToUpdate.dosageUnit = dosageUnit;
     if (formulation !== undefined) dataToUpdate.formulation = formulation;
     if (barcode !== undefined) dataToUpdate.barcode = barcode;
+    if (secondaryBarcodes !== undefined && Array.isArray(secondaryBarcodes)) dataToUpdate.secondaryBarcodes = secondaryBarcodes;
+    if (gtin !== undefined) dataToUpdate.gtin = gtin || null;
     if (description !== undefined) dataToUpdate.description = description;
     if (requiresPrescription !== undefined) dataToUpdate.requiresPrescription = requiresPrescription;
     if (supplierId !== undefined) dataToUpdate.supplierId = supplierId;
