@@ -15,12 +15,41 @@ const PORT = process.env.PORT || 4000;
 
 const ALLOWED_ORIGINS = [
   'https://pharmasalespwa.vercel.app',
+  'https://koodeyo.co.ug',
   'http://localhost:5173',
   'http://localhost:4173',
 ];
 
+const ALLOWED_DOMAIN_SUFFIXES = [
+  '.vercel.app',
+  '.koodeyo.co.ug',
+];
+
 const corsOptions: cors.CorsOptions = {
-  origin: true, // Accept all origins — tighten after Vercel CORS is confirmed working
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check exact matches or secure domain suffixes via parsed URL hostname
+    const isAllowed = ALLOWED_ORIGINS.includes(origin) || 
+      ALLOWED_DOMAIN_SUFFIXES.some(suffix => {
+        try {
+          const url = new URL(origin);
+          const baseDomain = suffix.replace(/^\./, '');
+          return url.hostname === baseDomain || url.hostname.endsWith(suffix);
+        } catch {
+          return false;
+        }
+      });
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
