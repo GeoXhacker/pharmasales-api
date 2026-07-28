@@ -13,8 +13,29 @@ import profitsRoutes from './routes/profits';
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
-app.options('*', cors() as any);
+const ALLOWED_ORIGINS = [
+  'https://pharmasalespwa.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:4173',
+];
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin '${origin}' not allowed`));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+};
+
+app.use(cors(corsOptions));
+// Explicitly handle preflight for all routes (Express 5 compatible — no bare '*')
+app.options(/.*/, cors(corsOptions) as any);
 app.use(helmet());
 app.use(express.json());
 
